@@ -1,6 +1,6 @@
 # Exfiltrating a File Through an ICMP Packet
 
-This project is about exfiltrating a file through an ICMP packet. You can choose between the first methode `ICMP_scapy.py` which has the basic fonctionality to send a coded file through an ICMP packet. Or `ICMP_scapy2.py`that has more security added to it, for exemple it sends more than one ICMP packet, the file is coded and it has a corrupt characters added to the coded file to keep it from being recognized and decoded.
+This project is about exfiltrating a file through an ICMP packet. You can choose between the first method `ICMP_scapy.py` which has the basic fonctionality to send a coded file through an ICMP packet. Or `ICMP_scapy2.py`that has more security added to it, for example it sends more than one ICMP packet, the file is coded and it has corrupt characters added to the coded file to keep it from being recognized and decoded.
 
 The following are the steps to run the project:
 
